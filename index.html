@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aria Network Workbench</title>
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="topbar-start">
+        <span class="app-mark">A</span>
+        <span class="app-name">Aria</span>
+      </div>
+      <h1 id="workspace-title" class="topbar-title">Request Lab</h1>
+      <div class="topbar-end">
+        <span id="connection-status" class="status-pill neutral">LOCAL READY</span>
+        <span id="status-text">· Ready</span>
+        <button id="btn-theme" class="btn-flat" title="Switch theme">Theme</button>
+        <button id="btn-settings" class="btn-flat" title="Settings">Settings</button>
+        <button id="btn-new-request" class="btn-primary">New Request</button>
+      </div>
+    </header>
+    <nav class="tool-nav">
+        <button class="tool-tab active" data-tool="request"><b>Request Lab</b></button>
+        <button class="tool-tab" data-tool="network"><b>Network</b></button>
+        <button class="tool-tab" data-tool="diagnostics"><b>Diagnostics</b></button>
+        <button class="tool-tab" data-tool="downloads"><b>Transfers</b></button>
+        <button class="tool-tab" data-tool="history"><b>History</b></button>
+        <button class="tool-tab" data-tool="agent"><b>Agent</b></button>
+      </nav>
+      <main class="workspace">
+      <section id="tool-request" class="tool-view active">
+        <div class="request-grid">
+          <section class="panel request-panel">
+            <div class="panel-head"><div><span class="panel-kicker">HTTP CLIENT</span><h2>Compose request</h2></div><span class="engine-chip">CURL ENGINE</span></div>
+            <form id="request-form">
+              <div class="url-bar"><select id="request-method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option></select><input id="request-url" type="url" placeholder="https://example.com/api/health" required /><button type="button" id="btn-copy-curl" class="btn-flat" title="Copy as cURL command">cURL</button><button type="submit" class="send-btn">Send <span>↗</span></button></div>
+              <div class="request-tabs"><button type="button" class="request-tab active" data-request-tab="headers">Headers <span id="header-count">0</span></button><button type="button" class="request-tab" data-request-tab="body">Body</button><button type="button" class="request-tab" data-request-tab="auth">Auth</button><button type="button" class="request-tab" data-request-tab="transport">Transport</button></div>
+              <div id="request-headers" class="request-section active"><div id="header-rows"></div><button type="button" id="btn-add-header" class="add-row">＋ Add header</button></div>
+              <div id="request-body" class="request-section"><textarea id="request-body-input" placeholder='{"key":"value"}'></textarea><div class="body-meta"><select id="body-type"><option value="application/json">application/json</option><option value="application/x-www-form-urlencoded">form urlencoded</option><option value="text/plain">text/plain</option></select><span>Raw request body</span></div></div>
+              <div id="request-auth" class="request-section"><div class="form-row"><label>Username<input id="request-username" type="text" autocomplete="off" /></label><label>Password<input id="request-password" type="password" autocomplete="off" /></label></div><div class="form-row" style="margin-top: var(--space-2);"><label>Bearer token<input id="request-bearer" type="password" autocomplete="off" placeholder="Optional JWT / API token" /></label></div><label class="check-row" style="margin-top: var(--space-2);"><input id="request-use-cookies" type="checkbox" /> Send cookie string<input id="request-cookies" type="text" placeholder="session=…" /></label></div>
+              <div id="request-transport" class="request-section"><div class="toggle-grid"><label><input id="opt-follow" type="checkbox" checked /> Follow redirects</label><label><input id="opt-compressed" type="checkbox" /> Accept compression</label><label><input id="opt-insecure" type="checkbox" /> Skip TLS verification</label><label><input id="opt-ipv4" type="checkbox" /> Force IPv4</label><label><input id="opt-ipv6" type="checkbox" /> Force IPv6</label></div><div class="form-row"><label>Timeout (seconds)<input id="request-timeout" type="number" value="30" min="1" /></label><label>Connect timeout<input id="request-connect-timeout" type="number" value="10" min="1" /></label><label>Max redirects<input id="request-max-redirects" type="number" value="20" min="0" /></label></div><div class="form-row"><label>User agent<input id="request-user-agent" type="text" placeholder="Aria/0.1" /></label><label>Referer<input id="request-referer" type="text" placeholder="https://example.com" /></label><label>Proxy<input id="request-proxy" type="text" placeholder="http://127.0.0.1:8080" /></label></div><div class="form-row"><label>CA certificate path<input id="request-ca" type="text" placeholder="Optional PEM path" /></label><label>Client certificate<input id="request-cert" type="text" placeholder="Optional PEM path" /></label><label>Private key<input id="request-key" type="text" placeholder="Optional PEM path" /></label></div></div>
+            </form>
+          </section>
+          <section class="panel response-panel"><div class="panel-head"><div><span class="panel-kicker">OBSERVATION</span><h2>Response</h2></div><div class="response-meta"><span id="response-status" class="status-pill neutral">—</span><span id="response-time">— ms</span></div></div><div id="response-empty" class="response-empty"><span class="response-glyph">⌁</span><strong>Awaiting a request</strong><p>Send an HTTP request to inspect status, headers, payload, and timing.</p></div><div id="response-result" class="hidden"><div class="response-tabs"><button class="response-tab active" data-response-tab="preview">Preview</button><button class="response-tab" data-response-tab="raw">Raw</button><button class="response-tab" data-response-tab="headers">Headers</button></div><div id="response-preview" class="response-preview"></div><pre id="response-raw" class="response-code hidden"></pre><pre id="response-headers" class="response-code hidden"></pre></div></section>
+        </div>
+        <section class="insight-strip"><div><span class="metric-label">EFFECTIVE URL</span><strong id="metric-url">—</strong></div><div><span class="metric-label">STATUS</span><strong id="metric-status">—</strong></div><div><span class="metric-label">LATENCY</span><strong id="metric-latency">—</strong></div><div><span class="metric-label">CURL EXIT</span><strong id="metric-exit">—</strong></div></section>
+      </section>
+
+      <section id="tool-network" class="tool-view">
+        <div class="network-toolbar">
+          <div class="toolbar-group">
+            <button id="net-btn-record" class="btn-tool recording" title="Toggle recording"><span class="record-dot"></span></button>
+            <button id="net-btn-clear" class="btn-tool" title="Clear captured traffic">⊘</button>
+            <label class="check-inline" title="Keep traffic across navigation or runs"><input id="net-opt-preserve" type="checkbox" checked /> Preserve log</label>
+          </div>
+          <div class="toolbar-divider"></div>
+          <div class="toolbar-filter">
+            <input id="net-filter-input" type="text" placeholder="Filter (text, status:200, method:POST...)" />
+            <button id="net-filter-clear" class="icon-btn hidden" title="Clear filter">×</button>
+          </div>
+          <div class="filter-chips">
+            <button class="chip active" data-type="all">All</button>
+            <button class="chip" data-type="fetch">Fetch/XHR</button>
+            <button class="chip" data-type="doc">Doc</button>
+            <button class="chip" data-type="css">CSS</button>
+            <button class="chip" data-type="js">JS</button>
+            <button class="chip" data-type="img">Img</button>
+            <button class="chip" data-type="media">Media</button>
+            <button class="chip" data-type="font">Font</button>
+            <button class="chip" data-type="ws">WS</button>
+            <button class="chip" data-type="other">Other</button>
+          </div>
+          <div class="toolbar-end">
+            <div class="view-switcher">
+              <button id="net-btn-view-requests" class="btn-segmented active" title="DevTools Network Table">Requests</button>
+              <button id="net-btn-view-discovery" class="btn-segmented" title="API Endpoint Discovery">Endpoints</button>
+            </div>
+            <button id="net-btn-export-har" class="btn-flat" title="Export as HTTP Archive (HAR 1.2)">Export HAR</button>
+            <button id="net-btn-import-har" class="btn-flat" title="Import HTTP Archive (HAR)">Import HAR</button>
+          </div>
+        </div>
+
+        <div id="net-main-container" class="network-main">
+          <!-- Request Table View -->
+          <div id="net-view-table" class="net-view-active">
+            <div class="net-table-wrapper">
+              <table class="net-table">
+                <thead>
+                  <tr>
+                    <th class="col-status">Status</th>
+                    <th class="col-method">Method</th>
+                    <th class="col-name">Name</th>
+                    <th class="col-domain">Domain</th>
+                    <th class="col-type">Type</th>
+                    <th class="col-initiator">Initiator</th>
+                    <th class="col-size">Size</th>
+                    <th class="col-time">Time</th>
+                    <th class="col-waterfall">Waterfall</th>
+                  </tr>
+                </thead>
+                <tbody id="net-table-body">
+                  <tr class="empty-row"><td colspan="9">No network activity recorded. Send a request in Request Lab or import a HAR file.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Endpoint Discovery View -->
+          <div id="net-view-discovery" class="net-view-hidden">
+            <div class="discovery-header">
+              <div class="discovery-stats">
+                <div><span class="metric-label">DISCOVERED ENDPOINTS</span><strong id="disc-count">0</strong></div>
+                <div><span class="metric-label">CLUSTERED CALLS</span><strong id="disc-calls">0</strong></div>
+                <div><span class="metric-label">AVG LATENCY</span><strong id="disc-latency">0 ms</strong></div>
+              </div>
+              <button id="disc-btn-export-openapi" class="btn-primary">Export OpenAPI 3.0 (JSON)</button>
+            </div>
+            <div id="discovery-list" class="discovery-list">
+              <div class="empty-state"><div class="empty-icon">⌘</div><p>No endpoints discovered yet. Record traffic to cluster requests into API endpoints.</p></div>
+            </div>
+          </div>
+
+          <!-- Split Detail Drawer -->
+          <aside id="net-detail-drawer" class="net-drawer hidden">
+            <div class="drawer-header">
+              <div class="drawer-title">
+                <span id="drawer-method" class="method-badge">GET</span>
+                <span id="drawer-url" class="drawer-url-text" title="">/api</span>
+              </div>
+              <div class="drawer-actions">
+                <button id="drawer-btn-redaction" class="btn-flat btn-sm" title="Toggle redacting sensitive tokens">Redaction: ON</button>
+                <button id="drawer-btn-replay" class="btn-primary btn-sm" title="Replay this request">Replay</button>
+                <button id="drawer-btn-curl" class="btn-flat btn-sm" title="Copy as cURL">cURL</button>
+                <button id="drawer-btn-fetch" class="btn-flat btn-sm" title="Copy as fetch()">Fetch</button>
+                <button id="drawer-btn-close" class="icon-btn" title="Close drawer (Esc)">×</button>
+              </div>
+            </div>
+
+            <nav class="drawer-tabs">
+              <button class="drawer-tab active" data-drawer-tab="headers">Headers</button>
+              <button class="drawer-tab" data-drawer-tab="payload">Payload</button>
+              <button class="drawer-tab" data-drawer-tab="preview">Preview</button>
+              <button class="drawer-tab" data-drawer-tab="response">Response</button>
+              <button class="drawer-tab" data-drawer-tab="timing">Timing</button>
+              <button class="drawer-tab" data-drawer-tab="cookies">Cookies</button>
+              <button class="drawer-tab" data-drawer-tab="initiator">Initiator</button>
+            </nav>
+
+            <div class="drawer-content">
+              <div id="drawer-section-headers" class="drawer-section active"></div>
+              <div id="drawer-section-payload" class="drawer-section"></div>
+              <div id="drawer-section-preview" class="drawer-section"></div>
+              <div id="drawer-section-response" class="drawer-section"></div>
+              <div id="drawer-section-timing" class="drawer-section"></div>
+              <div id="drawer-section-cookies" class="drawer-section"></div>
+              <div id="drawer-section-initiator" class="drawer-section"></div>
+            </div>
+          </aside>
+        </div>
+
+        <!-- Network Status Bar -->
+        <footer class="network-statusbar">
+          <div class="statusbar-metrics">
+            <span id="net-stat-count">0 requests</span>
+            <span class="statusbar-sep">|</span>
+            <span id="net-stat-size">0 B transferred</span>
+            <span class="statusbar-sep">|</span>
+            <span id="net-stat-time">0 ms total time</span>
+          </div>
+          <div id="net-stat-filter" class="statusbar-filter"></div>
+        </footer>
+      </section>
+
+      <section id="tool-diagnostics" class="tool-view"><div class="tool-intro"><span class="panel-kicker">AUTHORIZED HOST CHECKS</span><h2>Diagnostics</h2><p>Run focused, single-target checks against systems you own or are authorized to assess.</p></div><div class="diagnostic-grid"><div class="diagnostic-card"><span>01 / HTTP health</span><h3>Request Lab</h3><p>Run a configured request and inspect headers, redirects, TLS behavior, and timing.</p><button class="text-btn" data-open-request>Open request lab ↗</button></div><div class="diagnostic-card"><span>02 / DNS lookup</span><h3>Resolve hostname</h3><p>Resolve a hostname and inspect address families and response timing.</p><form id="dns-form" class="diagnostic-form"><input id="dns-host" type="text" placeholder="example.com" required /><button class="text-btn" type="submit">Run lookup ↗</button></form><div id="dns-result" class="diagnostic-result hidden"></div></div><div class="diagnostic-card"><span>03 / TLS inspection</span><h3>Inspect certificate</h3><p>Review TLS negotiation, certificate metadata, SANs, verification, and ALPN.</p><form id="tls-form" class="diagnostic-form"><div class="diagnostic-inline"><input id="tls-host" type="text" placeholder="example.com" required /><input id="tls-port" type="number" value="443" min="1" max="65535" aria-label="TLS port" /></div><button class="text-btn" type="submit">Inspect TLS ↗</button></form><div id="tls-result" class="diagnostic-result hidden"></div></div><div class="diagnostic-card"><span>04 / Reachability</span><h3>Ping host</h3><p>Send one bounded ICMP echo request to a single host.</p><form id="ping-form" class="diagnostic-form"><input id="ping-host" type="text" placeholder="example.com" required /><button class="text-btn" type="submit">Run ping ↗</button></form><div id="ping-result" class="diagnostic-result hidden"></div></div><div class="diagnostic-card"><span>05 / Transport</span><h3>TCP connect</h3><p>Check one explicitly supplied TCP port with a short timeout.</p><form id="tcp-form" class="diagnostic-form"><div class="diagnostic-inline"><input id="tcp-host" type="text" placeholder="example.com" required /><input id="tcp-port" type="number" value="443" min="1" max="65535" aria-label="TCP port" /></div><button class="text-btn" type="submit">Check port ↗</button></form><div id="tcp-result" class="diagnostic-result hidden"></div></div><div class="diagnostic-card"><span>06 / Path</span><h3>Traceroute</h3><p>Trace up to eight hops to one host using the local traceroute utility.</p><form id="trace-form" class="diagnostic-form"><input id="trace-host" type="text" placeholder="example.com" required /><button class="text-btn" type="submit">Trace route ↗</button></form><div id="trace-result" class="diagnostic-result hidden"></div></div><div class="diagnostic-card"><span>07 / Local system</span><h3>Network visibility</h3><p>Inspect local interfaces, routes, and resolver configuration.</p><button id="btn-network-info" class="text-btn" type="button">Inspect local network ↗</button><pre id="network-result" class="diagnostic-result hidden"></pre></div><div class="diagnostic-card"><span>08 / Evidence</span><h3>Import PCAP</h3><p>Import a local PCAP or PCAPNG header for bounded offline evidence review.</p><button id="btn-import-pcap" class="text-btn" type="button">Choose capture ↗</button><div id="pcap-result" class="diagnostic-result hidden"></div></div><div class="diagnostic-card"><span>09 / Guardrails</span><h3>Single-target scope</h3><p>Aria keeps active diagnostics narrow: one host at a time, with no broad scanning or credential discovery.</p><em>Authorized use only</em></div></div></section>
+
+      <section id="tool-downloads" class="tool-view"><div class="tool-intro"><span class="panel-kicker">TRANSFER TOOL</span><h2>Transfers</h2><p>Downloads are one networking capability. Use aria2 for segmented/torrent transfers or curl for focused file retrieval.</p><button id="btn-add-download" class="send-btn">＋ New transfer</button></div><div id="downloads-list"><div class="empty-state"><div class="empty-icon">↓</div><p>No active transfers</p></div></div></section>
+
+      <section id="tool-history" class="tool-view"><div class="tool-intro"><span class="panel-kicker">LOCAL ACTIVITY</span><h2>History</h2><p>Requests will appear here after you run them. Save and replay workflows in a future workspace version.</p><div class="proxy-actions"><button id="btn-save-workspace" class="send-btn">Save workspace</button><button id="btn-load-workspace" class="ghost-btn">Load workspace</button><button id="btn-export-report" class="ghost-btn">Export report</button></div></div><div id="history-list" class="history-list"><div class="empty-state"><div class="empty-icon">◷</div><p>No request history yet</p></div></div></section>
+
+
+      <section id="tool-agent" class="tool-view"><div class="tool-intro"><span class="panel-kicker">LOCAL AI COPILOT</span><h2>Agent chat</h2><p>Connect Aria to an OpenAI-compatible custom endpoint or an Anthropic Claude Agent SDK gateway. The agent receives only the context you choose to share.</p></div><section class="panel agent-panel"><div class="agent-settings"><label>Provider<select id="agent-provider"><option value="openai">OpenAI-compatible endpoint</option><option value="claude">Claude Agent SDK (local workspace agent)</option></select></label><label>Endpoint<input id="agent-endpoint" type="url" value="http://127.0.0.1:8000/v1" placeholder="https://gateway.example/v1" /><small class="agent-endpoint-note">Claude SDK uses the local runtime; OpenAI-compatible mode uses this URL.</small></label><label>Model<input id="agent-model" type="text" value="gpt-4o-mini" placeholder="model-name" /></label><label>API key<input id="agent-api-key" type="password" autocomplete="off" placeholder="Optional; stored only in this window" /></label><label class="agent-context"><input id="agent-include-context" type="checkbox" checked /> Include current networking context</label></div><div id="agent-messages" class="agent-messages"><div class="empty-state"><div class="empty-icon">✦</div><p>Ask the agent to explain a response, summarize captures, or suggest an authorized next step.</p></div></div><form id="agent-form" class="agent-compose"><textarea id="agent-input" placeholder="Ask about the current request or captured traffic…" required></textarea><button class="send-btn" type="submit">Send <span>↗</span></button></form></section></section>
+
+      <!-- Modals -->
+      <dialog id="dialog-transfer" class="adw-dialog">
+        <form id="form-transfer" method="dialog">
+          <div class="dialog-head">
+            <h3>New Transfer</h3>
+            <button type="button" class="icon-btn dialog-close" aria-label="Close">×</button>
+          </div>
+          <div class="dialog-body">
+            <label>URL or URI
+              <input id="transfer-input-url" type="url" placeholder="https://example.com/file.zip" required />
+            </label>
+            <label>Transfer Engine
+              <select id="transfer-engine-select">
+                <option value="curl">cURL (Direct HTTP/HTTPS)</option>
+                <option value="aria2">aria2 (Multi-connection / Torrent)</option>
+              </select>
+            </label>
+          </div>
+          <div class="dialog-actions">
+            <button type="button" class="btn-flat dialog-cancel">Cancel</button>
+            <button type="submit" class="btn-primary">Start Transfer</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog id="dialog-save-workspace" class="adw-dialog">
+        <form id="form-save-workspace" method="dialog">
+          <div class="dialog-head">
+            <h3>Save Workspace</h3>
+            <button type="button" class="icon-btn dialog-close" aria-label="Close">×</button>
+          </div>
+          <div class="dialog-body">
+            <label>Workspace Name
+              <input id="save-workspace-name" type="text" value="default" placeholder="default" required pattern="[a-zA-Z0-9_\-]+" title="Alphanumeric, dashes, underscores only" />
+            </label>
+          </div>
+          <div class="dialog-actions">
+            <button type="button" class="btn-flat dialog-cancel">Cancel</button>
+            <button type="submit" class="btn-primary">Save</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog id="dialog-load-workspace" class="adw-dialog">
+        <form id="form-load-workspace" method="dialog">
+          <div class="dialog-head">
+            <h3>Load Workspace</h3>
+            <button type="button" class="icon-btn dialog-close" aria-label="Close">×</button>
+          </div>
+          <div class="dialog-body">
+            <label>Select Workspace
+              <select id="load-workspace-select"></select>
+            </label>
+          </div>
+          <div class="dialog-actions">
+            <button type="button" class="btn-flat dialog-cancel">Cancel</button>
+            <button type="submit" class="btn-primary">Load</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog id="dialog-settings" class="adw-dialog">
+        <form id="form-settings" method="dialog">
+          <div class="dialog-head">
+            <h3>Workbench Settings</h3>
+            <button type="button" class="icon-btn dialog-close" aria-label="Close">×</button>
+          </div>
+          <div class="dialog-body">
+            <div class="form-row">
+              <label>aria2 RPC Host
+                <input id="settings-host" type="text" value="localhost" required />
+              </label>
+              <label>RPC Port
+                <input id="settings-port" type="number" value="6800" min="1" max="65535" required />
+              </label>
+            </div>
+            <label>Download Directory
+              <div class="diagnostic-inline">
+                <input id="settings-download-dir" type="text" placeholder="Default app downloads folder" />
+                <button type="button" id="btn-browse-download-dir" class="btn-flat">Browse</button>
+              </div>
+            </label>
+            <div class="form-row">
+              <label>Max Concurrent Transfers
+                <input id="settings-max-concurrent" type="number" value="3" min="1" max="16" />
+              </label>
+              <label>Download Limit (0 = unmetered)
+                <input id="settings-max-download-limit" type="text" value="0" />
+              </label>
+            </div>
+          </div>
+          <div class="dialog-actions">
+            <button type="button" class="btn-flat dialog-cancel">Cancel</button>
+            <button type="submit" class="btn-primary">Save Settings</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog id="dialog-confirm-replay" class="adw-dialog">
+        <form id="form-confirm-replay" method="dialog">
+          <div class="dialog-head">
+            <h3>Confirm Request Replay</h3>
+            <button type="button" class="icon-btn dialog-close" aria-label="Close">×</button>
+          </div>
+          <div class="dialog-body">
+            <p id="replay-confirm-text">This request has a non-idempotent method (<span id="replay-confirm-method" style="font-weight:700; color:var(--warning-color)">POST</span>) which may modify remote resources. Are you sure you want to replay it?</p>
+          </div>
+          <div class="dialog-actions">
+            <button type="button" class="btn-flat dialog-cancel">Cancel</button>
+            <button type="submit" class="btn-primary" id="btn-replay-confirm-submit">Replay Request</button>
+          </div>
+        </form>
+      </dialog>
+    </main>
+  </div>
+  <script>
+    const themeBtn = document.getElementById('btn-theme');
+    const html = document.documentElement;
+    themeBtn?.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      themeBtn.textContent = next === 'dark' ? 'Light' : 'Dark';
+    });
+  </script>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

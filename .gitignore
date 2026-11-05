@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Frontend build output
+dist/
+
+# Rust/Tauri build output
+src-tauri/target/
+
+# Downloaded archives and aria2 sidecars
+*.7z
+*.7z.aria2
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
